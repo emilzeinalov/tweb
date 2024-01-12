@@ -58,6 +58,7 @@ import createBadge from '../../helpers/createBadge';
 import PopupBoostsViaGifts from '../popups/boostsViaGifts';
 import AppStatisticsTab from '../sidebarRight/tabs/statistics';
 import {ChatType} from './chat';
+import PopupStreamWith from '../popups/streamWith';
 
 type ButtonToVerify = {element?: HTMLElement, verify: () => boolean | Promise<boolean>};
 
@@ -397,8 +398,14 @@ export default class ChatTopbar {
     }, {
       icon: 'videochat',
       text: 'PeerInfo.Action.LiveStream',
-      onClick: this.onJoinGroupCallClick,
+      onClick: () => {
+        PopupElement.createPopup(PopupStreamWith);
+      },
       verify: this.verifyVideoChatButton.bind(this, 'broadcast')
+      // verify: async() =>
+      //   await this.managers.appPeersManager.isBroadcast(this.peerId) &&
+      //     this.managers.appChatsManager.hasRights(this.peerId.toChatId(), 'create_giveaway')
+      // // onClick: this.onJoinGroupCallClick,
     }, {
       icon: 'videochat',
       text: 'PeerInfo.Action.VoiceChat',
