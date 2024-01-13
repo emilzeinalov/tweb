@@ -12,7 +12,18 @@
 import type GroupCallConnectionInstance from '../calls/groupCallConnectionInstance';
 import safeReplaceObject from '../../helpers/object/safeReplaceObject';
 import {nextRandomUint} from '../../helpers/random';
-import {DataJSON, GroupCall, GroupCallParticipant, GroupCallParticipantVideoSourceGroup, InputGroupCall, PhoneJoinGroupCall, PhoneJoinGroupCallPresentation, Update, Updates} from '../../layer';
+import {
+  DataJSON,
+  GroupCall,
+  GroupCallParticipant,
+  GroupCallParticipantVideoSourceGroup,
+  InputGroupCall,
+  PhoneGroupCallStreamRtmpUrl,
+  PhoneJoinGroupCall,
+  PhoneJoinGroupCallPresentation,
+  Update,
+  Updates
+} from '../../layer';
 import {logger} from '../logger';
 import {NULL_PEER_ID} from '../mtproto/mtproto_config';
 import {AppManager} from './manager';
@@ -379,6 +390,13 @@ export class AppGroupCallsManager extends AppManager {
       call: this.getGroupCallInput(groupCallId)
     }).then((updates) => {
       this.apiUpdatesManager.processUpdateMessage(updates);
+    });
+  }
+
+  public async getGroupCallStreamRtmpUrl(chatId: ChatId, revoke?: boolean): Promise<PhoneGroupCallStreamRtmpUrl> {
+    return this.apiManager.invokeApi('phone.getGroupCallStreamRtmpUrl', {
+      peer: this.appPeersManager.getInputPeerById(chatId.toPeerId(true)),
+      revoke
     });
   }
 }

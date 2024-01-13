@@ -11,10 +11,15 @@ import {copyTextToClipboard} from '../../helpers/clipboard';
 import {attachClickEvent} from '../../helpers/dom/clickEvent';
 import Icon from '../icon';
 import {toastNew} from '../toast';
+import type Chat from '../chat/chat';
+import {PhoneGroupCallStreamRtmpUrl} from '../../layer';
 
 const className = 'popup-stream-with';
 export default class PopupStreamWith extends PopupElement {
-  constructor() {
+  private chatId: number | string;
+  private streamRtmpUrl: PhoneGroupCallStreamRtmpUrl | undefined;
+
+  constructor(private readonly chat: Chat) {
     super(className, {
       closable: true,
       overlayClosable: true,
@@ -24,53 +29,78 @@ export default class PopupStreamWith extends PopupElement {
       title: 'StreamWith.Title'
     });
 
+    this.chatId = this.chat.peerId.toChatId();
     this.construct();
   }
 
-  private construct() {
-    // Construct Header
-    const menu: HTMLElement = this.createMenu();
-    this.header.append(menu);
+  private async construct() {
+    await this.assignStreamRtmpUrl();
 
-    // Construct Body
-    const content: HTMLElement = this.createContent();
-    this.scrollable.append(
-      content
-    );
+    this.renderMenu();
+    this.renderContent();
+    this.renderFooter();
 
-
-    // Construct Footer
-    const startStreamingBtn: HTMLElement = this.createStartStreamingBtn();
-
-    this.footer.append(
-      startStreamingBtn
-    );
 
     // Open Popup
     this.show();
   }
 
+  private async assignStreamRtmpUrl(revoke?: boolean) {
+    try {
+      this.streamRtmpUrl = await this.chat.managers.appGroupCallsManager.getGroupCallStreamRtmpUrl(this.chatId, revoke);
+    } catch(err) {
+      toastNew({langPackKey: 'Error.AnError'});
+      throw err;
+    }
+  }
+
   // Create stream options
-  private createMenu(): HTMLElement {
-    return ButtonMenuToggle({
+  private renderMenu() {
+    const menu = ButtonMenuToggle({
       listenerSetter: this.listenerSetter,
       direction: 'bottom-left',
       buttons: [{
-        icon: 'bug',
-        text: 'StreamWith.TBD',
-        onClick: () => {
-          console.log('TBD');
-        },
-        verify: () => true
-      }],
-      onOpen: async(e, element) => {
-        console.log('Do something when open');
-      }
+        icon: 'flip',
+        text: 'StreamWith.Menu.Revoke',
+        onClick: async() => {
+          await this.assignStreamRtmpUrl(true);
+          this.renderContent(true);
+        }
+      }]
     });
+
+    this.header.append(menu);
   }
 
-  // Create stream usage instructions
-  private createContent(): HTMLElement {
+  // Create or update stream usage instructions
+  private renderContent(update?: boolean) {
+    const instructionsContainerClassName = className + '-content-container-instructions-container'
+
+    const serverUrlInstruction: HTMLElement = this.streamRtmpUrl && this.createSharedInstruction({
+      icon: 'link',
+      hint: 'StreamWith.Instruction.ServerUrl',
+      value: this.streamRtmpUrl.url,
+      toastText: 'StreamWith.Instruction.ServerUrlCopied'
+    });
+    const streamKeyInstruction: HTMLElement = this.streamRtmpUrl && this.createSharedInstruction({
+      icon: 'lock',
+      hint: 'StreamWith.Instruction.StreamKey',
+      value: this.streamRtmpUrl.key,
+      toastText: 'StreamWith.Instruction.StreamKeyCopied',
+      isSecure: true
+    });
+
+    if(update) {
+      const [instructionsToUpdate] = Array.from(document.querySelectorAll('div.' + instructionsContainerClassName));
+      instructionsToUpdate.innerHTML = '';
+      instructionsToUpdate.append(
+        serverUrlInstruction,
+        streamKeyInstruction
+      );
+
+      return;
+    }
+
     // Content container
     const contentContainer = document.createElement('div');
     contentContainer.classList.add(className + '-content-container');
@@ -80,20 +110,7 @@ export default class PopupStreamWith extends PopupElement {
     const descriptionBottom: HTMLElement = this.createInstructionDescription({description: 'StreamWith.InstructionsSubtitle.Bottom'});
 
     const instructionsContainer: HTMLElement = document.createElement('div');
-    instructionsContainer.classList.add(className + '-content-container-instructions-container')
-
-    const serverUrlInstruction: HTMLElement = this.createSharedInstruction({
-      icon: 'link',
-      hint: 'StreamWith.Instruction.ServerUrl', value: 'LINK',
-      toastText: 'StreamWith.Instruction.ServerUrlCopied'
-    });
-    const streamKeyInstruction: HTMLElement = this.createSharedInstruction({
-      icon: 'lock',
-      hint: 'StreamWith.Instruction.StreamKey',
-      value: 'KEY',
-      toastText: 'StreamWith.Instruction.StreamKeyCopied',
-      isSecure: true
-    });
+    instructionsContainer.classList.add(instructionsContainerClassName)
 
     instructionsContainer.append(
       serverUrlInstruction,
@@ -106,7 +123,23 @@ export default class PopupStreamWith extends PopupElement {
       instructionsContainer,
       descriptionBottom
     )
-    return  contentContainer;
+
+    this.scrollable.append(contentContainer);
+  }
+
+  private renderFooter() {
+    const container = document.createElement('div');
+    container.classList.add(className + '-start-streaming-btn-container');
+
+    const btn = document.createElement('button');
+    btn.classList.add('btn-primary', 'btn-color-primary');
+    _i18n(btn, 'StreamWith.StartStreamingBtn.Caption');
+
+    container.append(btn);
+
+    attachClickEvent(btn, () => this.chat.appImManager.joinGroupCall(this.chat.peerId));
+
+    this.footer.append(container);
   }
 
   private createInstructionDescription(options: {description: LangPackKey}): HTMLElement {
@@ -173,18 +206,5 @@ export default class PopupStreamWith extends PopupElement {
     });
 
     return row.container;
-  }
-
-  private createStartStreamingBtn(): HTMLElement {
-    const container = document.createElement('div');
-    container.classList.add(className + '-start-streaming-btn-container');
-
-    const btn = document.createElement('button');
-    btn.classList.add('btn-primary', 'btn-color-primary');
-    _i18n(btn, 'StreamWith.StartStreamingBtn.Caption');
-
-    container.append(btn);
-
-    return container;
   }
 }

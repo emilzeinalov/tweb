@@ -28,7 +28,7 @@ import cancelEvent from '../../helpers/dom/cancelEvent';
 import {attachClickEvent} from '../../helpers/dom/clickEvent';
 import {toast, toastNew} from '../toast';
 import replaceContent from '../../helpers/dom/replaceContent';
-import {ChatFull, Chat as MTChat, GroupCall, Dialog} from '../../layer';
+import {ChatFull, Chat as MTChat, Dialog} from '../../layer';
 import PopupPickUser from '../popups/pickUser';
 import PopupPeer, {PopupPeerCheckboxOptions} from '../popups/peer';
 import AppEditContactTab from '../sidebarRight/tabs/editContact';
@@ -398,8 +398,8 @@ export default class ChatTopbar {
     }, {
       icon: 'videochat',
       text: 'PeerInfo.Action.LiveStream',
-      onClick: () => {
-        PopupElement.createPopup(PopupStreamWith);
+      onClick: async() => {
+        PopupElement.createPopup(PopupStreamWith, this.chat);
       },
       verify: this.verifyVideoChatButton.bind(this, 'broadcast')
       // verify: async() =>
