@@ -1,7 +1,3 @@
-/*
- * https://github.com/morethanwords/tweb/blob/master/LICENSE
- */
-
 import PopupElement from '.';
 import ButtonMenuToggle from '../buttonMenuToggle';
 import {_i18n, LangPackKey} from '../../lib/langPack';
@@ -13,6 +9,7 @@ import Icon from '../icon';
 import {toastNew} from '../toast';
 import type Chat from '../chat/chat';
 import {PhoneGroupCallStreamRtmpUrl} from '../../layer';
+import replaceContent from '../../helpers/dom/replaceContent';
 
 const className = 'popup-stream-with';
 export default class PopupStreamWith extends PopupElement {
@@ -90,14 +87,17 @@ export default class PopupStreamWith extends PopupElement {
       isSecure: true
     });
 
+    const instructionsContainer: HTMLElement = document.createElement('div');
+    instructionsContainer.classList.add(instructionsContainerClassName)
+
+    instructionsContainer.append(
+      serverUrlInstruction,
+      streamKeyInstruction
+    );
+
     if(update) {
       const [instructionsToUpdate] = Array.from(document.querySelectorAll('div.' + instructionsContainerClassName));
-      instructionsToUpdate.innerHTML = '';
-      instructionsToUpdate.append(
-        serverUrlInstruction,
-        streamKeyInstruction
-      );
-
+      instructionsToUpdate.replaceWith(instructionsContainer)
       return;
     }
 
@@ -108,14 +108,6 @@ export default class PopupStreamWith extends PopupElement {
     // Instruction description on the top of popup
     const descriptionTop: HTMLElement = this.createInstructionDescription({description: 'StreamWith.InstructionsSubtitle.Top'});
     const descriptionBottom: HTMLElement = this.createInstructionDescription({description: 'StreamWith.InstructionsSubtitle.Bottom'});
-
-    const instructionsContainer: HTMLElement = document.createElement('div');
-    instructionsContainer.classList.add(instructionsContainerClassName)
-
-    instructionsContainer.append(
-      serverUrlInstruction,
-      streamKeyInstruction
-    );
 
     // Compose content
     contentContainer.append(
@@ -137,7 +129,7 @@ export default class PopupStreamWith extends PopupElement {
 
     container.append(btn);
 
-    attachClickEvent(btn, () => this.chat.appImManager.joinGroupCall(this.chat.peerId));
+    attachClickEvent(btn, () => this.chat.appImManager.joinGroupCall(this.chat.peerId, undefined, true));
 
     this.footer.append(container);
   }
@@ -188,7 +180,7 @@ export default class PopupStreamWith extends PopupElement {
         isSecure = !isSecure;
         title.classList.remove(elClassName + (isSecure ? '-title-container-title' : '-title-container-title-secure'))
         title.classList.add(elClassName + (isSecure ? '-title-container-title-secure' : '-title-container-title'))
-        subtitleSecureBtn.replaceChildren(Icon(isSecure ? 'eye1' : 'eye2'));
+        replaceContent(subtitleSecureBtn, Icon(isSecure ? 'eye1' : 'eye2'));
       });
     }
 

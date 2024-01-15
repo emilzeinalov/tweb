@@ -2292,7 +2292,7 @@ const lang = {
   'Giveaway.Type.Specific.Modal.SelectUsers': 'Select Users',
   'GroupStats.Title': 'Group Statistics',
   'StreamWith.Title': 'Stream With...',
-  'StreamWith.Menu.Revoke': 'Revoke stream',
+  'StreamWith.Menu.Revoke': 'Revoke stream key',
   'StreamWith.InstructionsSubtitle.Top': 'To stream video with another app, enter these Server URL and Stream Key in your streaming app. Software encoding recommended (×264 in OBS).',
   'StreamWith.InstructionsSubtitle.Bottom': 'Once you start broadcasting in your streaming app, click Start Streaming below.',
   'StreamWith.Instruction.ServerUrl': 'Server URL',
@@ -2300,7 +2300,10 @@ const lang = {
   'StreamWith.StartStreaming': 'Start Streaming',
   'StreamWith.Instruction.ServerUrlCopied': 'Server URL copied to clipboard',
   'StreamWith.Instruction.StreamKeyCopied': 'Stream Key copied to clipboard',
-  'StreamWith.StartStreamingBtn.Caption': 'Start streaming'
+  'StreamWith.StartStreamingBtn.Caption': 'Start streaming',
+  'ChatGroupCall.PinnedBar.Join': 'Join',
+  'ChatGroupCall.PinnedBar.Title': 'Live Stream',
+  'ChatGroupCall.PinnedBar.Subtitle': '%@ watching'
 };
 
 export default lang;

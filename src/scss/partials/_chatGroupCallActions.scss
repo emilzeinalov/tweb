@@ -1,0 +1,47 @@
+.pinned-group-call-actions {
+
+  &-container {
+    display: flex;
+    width: 100%;
+    height: 56px;
+    padding: 8px;
+
+    .quote-like {
+      display: flex;
+      width: 100%;
+      background: linear-gradient(89.9deg, rgba(69, 136, 227, 0.15), rgba(151, 111, 255, 0.1), rgba(228, 106, 206, 0.1)) !important;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+    }
+
+    &-quote-like {
+      .pinned-actions-button {
+        font-size: var(--font-size-14);
+        font-weight: var(--font-weight-normal);
+        color: var(--white);
+        width: 50px;
+        height: 26px;
+        border-radius: 16px;
+        background-color: rgba(228, 106, 206, 1);
+      }
+    }
+
+    &-stream-info{
+      display: flex;
+      flex-direction: column;
+      line-height: 18px;
+      color: var(--primary-color);
+
+      &-title {
+        font-size: var(--font-size-14);
+        font-weight: 600;
+      }
+
+      &-subtitle {
+        font-size: var(--font-size-14);
+        font-weight: 400;
+      }
+    }
+  }
+}

@@ -1409,7 +1409,7 @@ export class AppImManager extends EventListenerBase<{
     }
   }
 
-  public async joinGroupCall(peerId: PeerId, groupCallId?: GroupCallId) {
+  public async joinGroupCall(peerId: PeerId, groupCallId?: GroupCallId, rtmpStream?: boolean) {
     const chatId = peerId.toChatId();
     const hasRights = this.managers.appChatsManager.hasRights(chatId, 'manage_call');
     const next = async() => {
@@ -1420,7 +1420,7 @@ export class AppImManager extends EventListenerBase<{
           return;
         }
 
-        call = await this.managers.appGroupCallsManager.createGroupCall(chatId);
+        call = await this.managers.appGroupCallsManager.createGroupCall({chatId, rtmpStream} );
       } else {
         call = chatFull.call;
       }

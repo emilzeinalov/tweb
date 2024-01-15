@@ -253,11 +253,15 @@ export class AppGroupCallsManager extends AppManager {
     return call;
   }
 
-  public async createGroupCall(chatId: ChatId, scheduleDate?: number, title?: string) {
+  public async createGroupCall(options: {chatId: ChatId, scheduleDate?: number, title?: string, rtmpStream?: boolean
+}) {
+    const {chatId, scheduleDate, rtmpStream, title} = options;
+
     const updates = await this.apiManager.invokeApi('phone.createGroupCall', {
       peer: this.appPeersManager.getInputPeerById(chatId.toPeerId(true)),
       random_id: nextRandomUint(32),
       schedule_date: scheduleDate,
+      rtmp_stream: rtmpStream,
       title
     });
 

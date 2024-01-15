@@ -50,6 +50,7 @@ import ChatRequests from './requests';
 import {modifyAckedPromise} from '../../helpers/modifyAckedResult';
 import callbackify from '../../helpers/callbackify';
 import ChatActions from './actions';
+import ChannelGroupCall from './channelGroupCall';
 import confirmationPopup from '../confirmationPopup';
 import {avatarNew, findUpAvatar} from '../avatarNew';
 import {Middleware, MiddlewareHelper, getMiddleware} from '../../helpers/middleware';
@@ -82,6 +83,7 @@ export default class ChatTopbar {
   private btnSearch: HTMLButtonElement;
   private btnMore: HTMLElement;
 
+  private channelGroupCall: ChannelGroupCall;
   private chatActions: ChatActions;
   private chatRequests: ChatRequests;
   private chatAudio: ChatAudio;
@@ -162,6 +164,7 @@ export default class ChatTopbar {
     this.chatAudio = new ChatAudio(this, this.chat, this.managers);
     this.chatRequests = new ChatRequests(this, this.chat, this.managers);
     this.chatActions = new ChatActions(this, this.chat, this.managers);
+    this.channelGroupCall = new ChannelGroupCall(this, this.chat, this.managers);
 
     if(this.menuButtons.length) {
       this.btnMore = ButtonMenuToggle({
@@ -211,6 +214,10 @@ export default class ChatTopbar {
 
     if(this.chatActions) {
       this.container.append(this.chatActions.divAndCaption.container);
+    }
+
+    if(this.channelGroupCall) {
+      this.container.append(this.channelGroupCall.divAndCaption.container);
     }
 
     // * construction end
@@ -398,14 +405,11 @@ export default class ChatTopbar {
     }, {
       icon: 'videochat',
       text: 'PeerInfo.Action.LiveStream',
+      verify: async() => await this.managers.appPeersManager.isBroadcast(this.peerId) &&
+          this.managers.appChatsManager.hasRights(this.peerId.toChatId(), 'create_giveaway'),
       onClick: async() => {
         PopupElement.createPopup(PopupStreamWith, this.chat);
-      },
-      verify: this.verifyVideoChatButton.bind(this, 'broadcast')
-      // verify: async() =>
-      //   await this.managers.appPeersManager.isBroadcast(this.peerId) &&
-      //     this.managers.appChatsManager.hasRights(this.peerId.toChatId(), 'create_giveaway')
-      // // onClick: this.onJoinGroupCallClick,
+      }
     }, {
       icon: 'videochat',
       text: 'PeerInfo.Action.VoiceChat',
@@ -818,11 +822,13 @@ export default class ChatTopbar {
     this.chatAudio?.destroy();
     this.chatRequests?.destroy();
     this.chatActions?.destroy();
+    this.channelGroupCall?.destroy();
 
     delete this.pinnedMessage;
     delete this.chatAudio;
     delete this.chatRequests;
     delete this.chatActions;
+    delete this.channelGroupCall;
   }
 
   public cleanup() {
@@ -885,7 +891,8 @@ export default class ChatTopbar {
       setStatusCallback,
       state,
       setRequestsCallback,
-      setActionsCallback
+      setActionsCallback,
+      setChannelGroupCallCallback
     ] = await Promise.all([
       this.managers.appPeersManager.isBroadcast(peerId),
       this.managers.appPeersManager.isAnyChat(peerId),
@@ -895,7 +902,8 @@ export default class ChatTopbar {
       status?.prepare(true),
       apiManagerProxy.getState(),
       modifyAckedPromise(this.chatRequests.setPeerId(peerId)),
-      modifyAckedPromise(this.chatActions.setPeerId(peerId))
+      modifyAckedPromise(this.chatActions.setPeerId(peerId)),
+      this.channelGroupCall.setPeerId(peerId)
     ]);
 
     if(!middleware() && newAvatarMiddlewareHelper) {
@@ -980,6 +988,9 @@ export default class ChatTopbar {
       if(setActionsCallback.result instanceof Promise) {
         this.chatActions.unset(peerId);
       }
+
+      this.channelGroupCall.unset(peerId);
+      setChannelGroupCallCallback?.();
 
       callbackify(setRequestsCallback.result, (callback) => {
         if(!middleware()) {
@@ -1115,6 +1126,7 @@ export default class ChatTopbar {
       this.chatAudio,
       this.chatRequests,
       this.chatActions,
+      this.channelGroupCall,
       this.pinnedMessage?.pinnedMessageContainer
     ].filter(Boolean);
     const count = containers.reduce((acc, container) => {
